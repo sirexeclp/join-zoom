@@ -12,6 +12,10 @@ def build_zoom_link(conf_id, password=""):
     return f"zoommtg://zoom.us/join?action=join&confno={conf_id}&pwd={password}"
 
 
+def build_jitsi_link(url, room):
+    return f"{url}/{room}"
+
+
 def open_zoom(conf_id, password=""):
     zoom_link = build_zoom_link(conf_id, password)
     print(zoom_link)
@@ -54,6 +58,26 @@ def get_info_from_config(name, config):
     pw = config[name]["pw"]
     return conf_id, pw
 
+def join_browser(name, config):
+    url = config[name]["url"]
+    browser = config[name]["browser"]
+    print(url)
+    return webbrowser.get(browser).open(url)
+
+
+def join_zoom_from_config(name, config):
+    info = get_info_from_config(name=name, config=config)
+    return open_zoom(*info)
+
+
+def open_entry(name, config):
+    functions = {
+        "zoom": join_zoom_from_config,
+        "browser": join_browser
+    }
+    print("joining", name, "type:", config[name]["type"]) # , "Meeting-ID:", conf_id)
+    return functions[config[name]["type"]](name=name, config=config)
+
 
 def main(name=None, conf_id=None, password=None):
     print(r"""       _       _                                             
@@ -79,12 +103,13 @@ def main(name=None, conf_id=None, password=None):
             answers = prompt(questions)
             name = answers["meeting"]
         
-        conf_id, pw = get_info_from_config(name=name, config=config)
+        result = open_entry(name=name, config=config)
+        if hasattr(result, "returncode") and type(result.returncode) == int:
+            exit(result.returncode)
+        return
 
-    print("joining", name , "Meeting-ID:", conf_id)
     result = open_zoom(conf_id, pw)
-    if hasattr(result, "returncode") and\
-        type(result.returncode) == int:
+    if hasattr(result, "returncode") and type(result.returncode) == int:
         exit(result.returncode)
 
 
