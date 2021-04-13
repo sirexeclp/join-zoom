@@ -75,8 +75,9 @@ def open_entry(name, config):
         "zoom": join_zoom_from_config,
         "browser": join_browser
     }
-    print("joining", name, "type:", config[name]["type"]) # , "Meeting-ID:", conf_id)
-    return functions[config[name]["type"]](name=name, config=config)
+    conf_type = config[name].get("type", "zoom")
+    print("joining", name, "type:", conf_type) # , "Meeting-ID:", conf_id)
+    return functions[conf_type](name=name, config=config)
 
 
 def main(name=None, conf_id=None, password=None):
