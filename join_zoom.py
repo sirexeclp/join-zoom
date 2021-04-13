@@ -73,7 +73,7 @@ def main(name=None, conf_id=None, password=None):
                     'type': 'list',
                     'choices':config.sections(), 
                     'name': 'meeting',
-                    'message': 'Which Zoom meeting do you want to join:',
+                    'message': 'Please select the meeting you want to join:',
                 }
             ]
             answers = prompt(questions)
