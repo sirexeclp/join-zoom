@@ -6,7 +6,7 @@ import os
 import os.path
 from PyInquirer import prompt
 import fire
-
+import pyperclip
 
 def build_zoom_link(conf_id, password=""):
     return f"zoommtg://zoom.us/join?action=join&confno={conf_id}&pwd={password}"
@@ -80,7 +80,7 @@ def open_entry(name, config):
     return functions[conf_type](name=name, config=config)
 
 
-def main(name=None, conf_id=None, password=None):
+def join(name=None, conf_id=None, password=None):
     print(r"""       _       _                                             
       (_)___  (_)___              ____  ____  ____  ____ ___ 
      / / __ \/ / __ \   ______   /_  / / __ \/ __ \/ __ `__ \
@@ -96,7 +96,7 @@ def main(name=None, conf_id=None, password=None):
             questions = [
                 {
                     'type': 'list',
-                    'choices':config.sections(), 
+                    'choices': [s for s in config.sections() if not s.startswith(".")], 
                     'name': 'meeting',
                     'message': 'Please select the meeting you want to join:',
                 }
@@ -114,5 +114,79 @@ def main(name=None, conf_id=None, password=None):
         exit(result.returncode)
 
 
+class AddConfig:
+
+    def __init__(self):
+        self.config_path = os.path.expanduser("~/.zoom/config")
+        self.config = ConfigParser()
+        self.config.read(self.config_path)
+
+    def zoom(self, name, conf_id, password):
+        self.config[name] = {
+            "type":"zoom",
+            "id": conf_id,
+            "password":password
+            }
+
+    def browser(self, name, url, browser):
+        self.config[name] = {
+            "type": "browser",
+            "url": url,
+            "browser": browser
+        }
+
+    def __del__(self):
+        with open(self.config_path, "w") as f:
+            self.config.write(f)
+
+
+class NewHandler:
+    def __init__(self):
+        self.config_path = os.path.expanduser("~/.zoom/config")
+        self.config = ConfigParser()
+        self.config.read(self.config_path)
+
+    def jitsi(self, room):
+        url = self.config[".default"]["jitsi"]
+        browser = self.config[".default"]["browser"]
+        full_url = f"{url}/{room}"
+        print(full_url)
+        webbrowser.get(browser).open(full_url)
+        pyperclip.copy(full_url)
+    
+    def default_jitsi(self, url):
+        if ".default" not in self.config:
+            self.config[".default"] = {}    
+
+        self.config[".default"].update({
+            "jitsi": url
+        })
+
+    def default_browser(self, name):
+        if ".default" not in self.config:
+            self.config[".default"] = {}
+        
+        self.config[".default"].update({
+            "browser": name
+        })
+
+    def __del__(self):
+        with open(self.config_path, "w") as f:
+            self.config.write(f)
+
+
+
+class CLI:
+    def __init__(self):
+        self.add = AddConfig()
+        self.new = NewHandler()
+
+    def __call__(self, *args, **kwargs):
+        join(*args, **kwargs)
+    
+    def join(self, name=None, conf_id=None, password=None):
+        join(name=name, conf_id=conf_id, password=password)
+    
+
 if __name__ == "__main__":
-    fire.Fire(main)
+    fire.Fire(CLI)
