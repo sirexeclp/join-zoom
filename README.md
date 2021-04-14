@@ -7,7 +7,7 @@ All your zoom-meeting passwords are safely stored in an unencrypted text file.
 ## Install
 
 Requirements are listed in the `requirements.txt`.
-The need to be installed for the script to run.
+They have to be installed, with `pip3 install -r requirements.txt`, for the script to run.
 
 ## Config
 
