@@ -7,6 +7,30 @@ import os.path
 from PyInquirer import prompt
 import fire
 import pyperclip
+from pathlib import Path
+import itertools
+
+def add_browsers_win():
+    x64_apps = os.environ.get("PROGRAMFILES", "C:\\Program Files")
+    x86_apps = os.environ.get("PROGRAMFILES(x86)", "C:\\Program Files (x86)")
+    local_apps = os.environ["LOCALAPPDATA"]
+    
+    app_dirs = [x64_apps, x86_apps, local_apps]
+    browsers = [("firefox", "Mozilla Firefox\\firefox.exe"),
+        	    ("opera", "Opera\\launcher.exe"),
+                ("opera", "Programs\\Opera\\launcher.exe"),
+                ("chrome", "Google\\Chrome\\Application\\chrome.exe")
+            ]
+
+    for app_dir, (name, browser_path) in itertools.product(app_dirs, browsers):
+        path = Path(app_dir) / browser_path
+        if path.exists():
+            webbrowser.register(name, None, webbrowser.BackgroundBrowser(str(path)))
+
+
+if sys.platform[:3] == "win":
+    add_browsers_win()
+
 
 def build_zoom_link(conf_id, password=""):
     return f"zoommtg://zoom.us/join?action=join&confno={conf_id}&pwd={password}"
